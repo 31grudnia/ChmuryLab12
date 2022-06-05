@@ -1,0 +1,54 @@
+version: '3.8'
+
+networks:
+  backend:
+  frontend:
+
+services:
+    apache:
+      platform: linux/x86_64
+      # image: httpd:latest
+      build:
+        context: ./apache
+        dockerfile: Dockerfile
+      container_name: apache
+      ports:
+        - '80:80'
+      volumes:
+        - ./apache:/usr/local/apache2/htdocs
+      networks:
+        - backend
+        - frontend
+
+    db:
+      container_name: db
+      platform: linux/x86_64
+      # image: mysql:latest
+      build:
+        context: ./sql
+        dockerfile: Dockerfile
+      restart: always
+      environment:
+        MYSQL_ROOT_PASSWORD: rootpass
+        MYSQL_DATABASE: db
+        MYSQL_USER: user
+        MYSQL_PASSWORD: password
+      ports:
+        - "3306:3306"
+      networks:
+        - backend
+
+    php:
+      container_name: php
+      build:
+          context: ./php
+          dockerfile: Dockerfile
+      depends_on:
+          - db
+      volumes:
+          - ./php:/var/www/html/
+      ports:
+          - 88:80    
+      networks:
+        - backend
+    
